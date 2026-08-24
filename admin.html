@@ -143,8 +143,10 @@
 
 <script>
 
-const designForm =
-    document.getElementById("design-form");
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
 
 
 async function loadDesignSettings() {
