@@ -142,7 +142,6 @@
 <script src="supabase.js"></script>
 
 <script>
-    
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -166,7 +165,7 @@ async function loadDesignSettings() {
 
     if (error) {
 
-        console.error(error);
+        console.error("Settings load error:", error);
 
         document.getElementById("design-status").textContent =
             "❌ Could not load settings.";
@@ -210,7 +209,7 @@ designForm.addEventListener("submit", async function(event) {
         "Saving settings...";
 
 
-    const { data: existing } =
+    const { data: existing, error: findError } =
         await supabaseClient
             .from("website_settings")
             .select("id")
@@ -218,7 +217,9 @@ designForm.addEventListener("submit", async function(event) {
             .single();
 
 
-    if (!existing) {
+    if (findError || !existing) {
+
+        console.error("Find settings error:", findError);
 
         status.textContent =
             "❌ Settings row not found.";
@@ -266,7 +267,7 @@ designForm.addEventListener("submit", async function(event) {
 
     if (error) {
 
-        console.error(error);
+        console.error("Save settings error:", error);
 
         status.textContent =
             "❌ Save failed: " + error.message;
