@@ -142,11 +142,16 @@
 <script src="supabase.js"></script>
 
 <script>
+    
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
 );
+
+
+const designForm =
+    document.getElementById("design-form");
 
 
 async function loadDesignSettings() {
