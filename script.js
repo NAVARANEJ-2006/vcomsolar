@@ -63,26 +63,42 @@ function previousSlide() {
 }
 
 
-nextButton.addEventListener("click", nextSlide);
+if (nextButton) {
+
+    nextButton.addEventListener("click", nextSlide);
+
+}
 
 
-previousButton.addEventListener("click", previousSlide);
+if (previousButton) {
+
+    previousButton.addEventListener("click", previousSlide);
+
+}
 
 
-dots.forEach(function(dot, index) {
+if (dots.length > 0) {
 
-    dot.addEventListener("click", function() {
+    dots.forEach(function(dot, index) {
 
-        currentSlide = index;
+        dot.addEventListener("click", function() {
 
-        showSlide(currentSlide);
+            currentSlide = index;
+
+            showSlide(currentSlide);
+
+        });
 
     });
 
-});
+}
 
 
-setInterval(nextSlide, 5000);
+if (slides.length > 0) {
+
+    setInterval(nextSlide, 5000);
+
+}
 async function loadProjects() {
 
     const projectsList = document.getElementById("projects-list");
