@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VcomSolar Admin</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: #cbd5e1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 5px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .card p {
+            color: #666;
+        }
+
+        button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #d97706;
+        }
+
+        #connection-status {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 700px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>VcomSolar Admin</h1>
+        <p>Website Management Dashboard</p>
+    </div>
+
+    <div class="container">
+
+        <div class="welcome">
+            <h2>Welcome 👋</h2>
+
+            <p>Manage your VcomSolar website from here.</p>
+
+            <p id="connection-status">
+                Checking database connection...
+            </p>
+        </div>
+
+       <div class="card">
+
+    <h3>📰 Add New Article</h3>
+
+    <p>Create a new article or company news post.</p>
+
+    <form id="article-form">
+
+        <input
+            type="text"
+            id="article-title"
+            placeholder="Article title"
+            required
+        >
+
+        <input
+            type="text"
+            id="article-excerpt"
+            placeholder="Short description"
+            required
+        >
+
+        <label>
+            Article Photo
+            <input
+                type="file"
+                id="article-image"
+                accept="image/*"
+                required
+            >
+        </label>
+
+        <textarea
+            id="article-content"
+            placeholder="Write your article here..."
+            rows="8"
+            required
+        ></textarea>
+
+        <input
+            type="date"
+            id="article-date"
+            required
+        >
+
+        <label>
+            <input
+                type="checkbox"
+                id="article-published"
+                checked
+            >
+            Publish article
+        </label>
+
+        <button type="button" onclick="saveArticle()">
+    Save Article
+</button>
+
+    </form>
+
+    <p id="article-status"></p>
+
+</div>
+
+            <div class="card">
+                <h3>📰 Articles</h3>
+                <p>Create and manage articles and company news.</p>
+                <button>Add / Manage Articles</button>
+            </div>
+
+            <div class="card">
+                <h3>🖼️ Homepage</h3>
+                <p>Manage the images displayed in your homepage slideshow.</p>
+                <button>Manage Homepage</button>
+            </div>
+
+            <div class="card">
+                <h3>⚙️ Settings</h3>
+                <p>Manage your website settings.</p>
+                <button>Settings</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase.js"></script>
+
+    <script>
+
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+        async function testConnection() {
+
+            const status = document.getElementById("connection-status");
+
+            const { error } = await supabaseClient
+                .from("projects")
+                .select("id")
+                .limit(1);
+
+if (error) {
+
+    status.textContent =
+        "❌ " + error.message;
+
+    console.error(error);
+
+} else {
+
+                status.textContent =
+                    "✅ Database connected successfully!";
+
+            }
+        }
+
+        testConnection();
+
+  document.getElementById("project-form").addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const status = document.getElementById("project-status");
+
+    status.textContent = "Uploading photo...";
+
+    const title = document.getElementById("project-title").value;
+    const location = document.getElementById("project-location").value;
+    const projectDate = document.getElementById("project-date").value;
+    const description = document.getElementById("project-description").value;
+    const featured = document.getElementById("project-featured").checked;
+
+    const imageFile = document.getElementById("project-image").files[0];
+
+    if (!imageFile) {
+        status.textContent = "❌ Please select a photo.";
+        return;
+    }
+
+    const fileName =
+        Date.now() + "-" + imageFile.name.replace(/\s+/g, "-");
+
+    const { error: uploadError } = await supabaseClient
+        .storage
+        .from("website-images")
+        .upload("projects/" + fileName, imageFile);
+
+    if (uploadError) {
+
+        status.textContent =
+            "❌ Photo upload failed: " + uploadError.message;
+
+        console.error(uploadError);
+
+        return;
+    }
+
+    const { data: imageData } = supabaseClient
+        .storage
+        .from("website-images")
+        .getPublicUrl("projects/" + fileName);
+
+    const imageUrl = imageData.publicUrl;
+
+    status.textContent = "Saving project...";
+
+    const { error } = await supabaseClient
+        .from("projects")
+        .insert({
+            title: title,
+            location: location,
+            project_date: projectDate,
+            description: description,
+            image_url: imageUrl,
+            featured: featured
+        });
+
+    if (error) {
+
+        status.textContent =
+            "❌ Project save failed: " + error.message;
+
+        console.error(error);
+
+    } else {
+
+        status.textContent =
+            "✅ Project and photo saved successfully!";
+
+        document.getElementById("project-form").reset();
+    }
+
+});
+async function saveArticle() {
+
+    const status = document.getElementById("article-status");
+
+    status.textContent = "Uploading article photo...";
+
+    const title = document.getElementById("article-title").value;
+    const excerpt = document.getElementById("article-excerpt").value;
+    const content = document.getElementById("article-content").value;
+    const publishedDate = document.getElementById("article-date").value;
+    const published = document.getElementById("article-published").checked;
+
+    const imageFile = document.getElementById("article-image").files[0];
+
+    if (!imageFile) {
+        status.textContent = "❌ Please select an article photo.";
+        return;
+    }
+
+    const fileName =
+        Date.now() + "-" + imageFile.name.replace(/\s+/g, "-");
+
+    const { error: uploadError } = await supabaseClient
+        .storage
+        .from("website-images")
+        .upload("articles/" + fileName, imageFile);
+
+    if (uploadError) {
+
+        status.textContent =
+            "❌ Photo upload failed: " + uploadError.message;
+
+        console.error(uploadError);
+        return;
+    }
+
+    const { data: imageData } = supabaseClient
+        .storage
+        .from("website-images")
+        .getPublicUrl("articles/" + fileName);
+
+    const imageUrl = imageData.publicUrl;
+
+    status.textContent = "Saving article...";
+
+    const { error } = await supabaseClient
+        .from("articles")
+        .insert({
+            title: title,
+            excerpt: excerpt,
+            content: content,
+            image_url: imageUrl,
+            published: published,
+            published_date: publishedDate
+        });
+
+    if (error) {
+
+        status.textContent =
+            "❌ Article save failed: " + error.message;
+
+        console.error(error);
+
+    } else {
+
+        status.textContent =
+            "✅ Article and photo saved successfully!";
+
+        document.getElementById("article-form").reset();
+    }
+}
+    </script>
+
+</body>
+</html>
