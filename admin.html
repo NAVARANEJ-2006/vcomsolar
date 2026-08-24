@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VcomSolar Admin</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+    <nav class="navbar">
+
+        <a href="index.html" class="logo">
+            VCOM <span>SOLAR</span>
+        </a>
+
+        <div class="nav-links">
+
+            <a href="index.html">View Website</a>
+
+        </div>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="admin-page">
+
+        <div class="admin-container">
+
+            <p class="section-label">
+                VCOM SOLAR
+            </p>
+
+            <h1>
+                Website <span>Admin</span>
+            </h1>
+
+            <p class="admin-intro">
+                Manage your website content and appearance.
+            </p>
+
+
+            <!-- WEBSITE DESIGN -->
+
+            <div class="admin-card">
+
+                <h2>Website Design</h2>
+
+                <p>
+                    Change the appearance of your website.
+                </p>
+
+
+                <form id="design-form">
+
+                    <label>
+                        Company Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="setting-company-name"
+                        placeholder="VCOM SOLAR"
+                    >
+
+
+                    <label>
+                        Primary Colour
+                    </label>
+
+                    <input
+                        type="color"
+                        id="setting-primary-color"
+                    >
+
+
+                    <label>
+                        Accent Colour
+                    </label>
+
+                    <input
+                        type="color"
+                        id="setting-accent-color"
+                    >
+
+
+                    <label>
+                        Background Colour
+                    </label>
+
+                    <input
+                        type="color"
+                        id="setting-background-color"
+                    >
+
+
+                    <label>
+                        Text Colour
+                    </label>
+
+                    <input
+                        type="color"
+                        id="setting-text-color"
+                    >
+
+
+                    <button
+                        type="submit"
+                        class="admin-button"
+                    >
+                        Save Design
+                    </button>
+
+                    <p id="design-status"></p>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+<script>
+
+const designForm =
+    document.getElementById("design-form");
+
+
+async function loadDesignSettings() {
+
+    const { data, error } =
+        await supabaseClient
+            .from("website_settings")
+            .select("*")
+            .limit(1)
+            .single();
+
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById("design-status").textContent =
+            "❌ Could not load settings.";
+
+        return;
+    }
+
+
+    document.getElementById("setting-company-name").value =
+        data.company_name || "VCOM SOLAR";
+
+
+    document.getElementById("setting-primary-color").value =
+        data.primary_color || "#173B2B";
+
+
+    document.getElementById("setting-accent-color").value =
+        data.accent_color || "#F5C542";
+
+
+    document.getElementById("setting-background-color").value =
+        data.background_color || "#FFFFFF";
+
+
+    document.getElementById("setting-text-color").value =
+        data.text_color || "#26352E";
+
+}
+
+
+designForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+
+    const status =
+        document.getElementById("design-status");
+
+
+    status.textContent =
+        "Saving settings...";
+
+
+    const { data: existing } =
+        await supabaseClient
+            .from("website_settings")
+            .select("id")
+            .limit(1)
+            .single();
+
+
+    if (!existing) {
+
+        status.textContent =
+            "❌ Settings row not found.";
+
+        return;
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("website_settings")
+            .update({
+
+                company_name:
+                    document.getElementById(
+                        "setting-company-name"
+                    ).value,
+
+                primary_color:
+                    document.getElementById(
+                        "setting-primary-color"
+                    ).value,
+
+                accent_color:
+                    document.getElementById(
+                        "setting-accent-color"
+                    ).value,
+
+                background_color:
+                    document.getElementById(
+                        "setting-background-color"
+                    ).value,
+
+                text_color:
+                    document.getElementById(
+                        "setting-text-color"
+                    ).value,
+
+                updated_at:
+                    new Date().toISOString()
+
+            })
+            .eq("id", existing.id);
+
+
+    if (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "❌ Save failed: " + error.message;
+
+        return;
+    }
+
+
+    status.textContent =
+        "✅ Website design saved successfully!";
+
+});
+
+
+loadDesignSettings();
+
+</script>
+
+</body>
+
+</html>
